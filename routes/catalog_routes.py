@@ -51,3 +51,28 @@ def add_book():
     else:
         flash(message, 'error')
         return render_template('add_book.html')
+
+
+from library_service import get_patron_status_report
+
+@catalog_bp.route('/patron_status', methods=['GET', 'POST'])
+def patron_status():
+    """
+    Display patron status report (R7).
+    Shows current borrowed books, late fees, and history.
+    """
+    if request.method == 'GET':
+        return render_template('patron_status.html')
+
+    patron_id = request.form.get('patron_id', '').strip()
+    if not patron_id:
+        flash('Please enter your 6-digit Patron ID.', 'error')
+        return render_template('patron_status.html')
+
+    status_report = get_patron_status_report(patron_id)
+
+    if 'error' in status_report:
+        flash(status_report['error'], 'error')
+        return render_template('patron_status.html')
+
+    return render_template('patron_status.html', report=status_report, patron_id=patron_id)
