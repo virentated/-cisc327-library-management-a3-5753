@@ -32,8 +32,10 @@ jobs:
           pip install pytest
 
       - name: Initialize and populate database
+        working-directory: ./CISC327-CMPE327-F25  # path 
         run: |
-          python -c "import database; database.init_database(); database.add_sample_data()"
+          python -c "import database; database.init_database(); database.add_sample_data(); print('Database initialized ✅')"
 
       - name: Run tests
-        run: pytest
+        working-directory: ./CISC327-CMPE327-F25  #same path here
+        run: pytest -v
