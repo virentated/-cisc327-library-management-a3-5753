@@ -34,7 +34,7 @@ jobs:
       - name: Initialize and populate database
         
         run: |
-          python -c "import database; database.init_database(); database.add_sample_data(); print('Database initialized ✅')"
+          python -c "import database; database.init_database(); database.add_sample_data(); print('Database initialized')"
 
       - name: Run tests
        
