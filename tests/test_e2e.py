@@ -6,44 +6,43 @@ BASE_URL = "http://localhost:5000"
 
 
 def _unique_isbn() -> str:
-    """
-    Generate a random 13-digit ISBN string.
-    Avoids collisions so the test can be run multiple times.
-    """
+    
+    # Generate a random 13-digit ISBN string.
+    # Avoids collisions so the test can be run multiple times.
+    
     return "9" + str(random.randint(10**11, 10**12 - 1))
 
 
 def test_add_borrow_and_return_flow():
-    """
-    End-to-end scenario:
+    # End-to-end scenario:
 
-    Flow 1: Add + Borrow
-      1. Open home page (redirects to /catalog).
-      2. Go to /add_book and create a new book.
-      3. Verify the book appears in the catalog.
-      4. Borrow the book from the inline form on the catalog page.
+    # Flow 1: Add + Borrow
+    #   1. Open home page (redirects to /catalog).
+    #   2. Go to /add_book and create a new book.
+    #   3. Verify the book appears in the catalog.
+    #   4. Borrow the book from the inline form on the catalog page.
 
-    Flow 2: Return
-      5. Go to /return and return the same book.
-      6. Verify the return confirmation appears.
+    # Flow 2: Return
+    #   5. Go to /return and return the same book.
+    #   6. Verify the return confirmation appears.
 
-    This uses real browser interactions and asserts on visible content.
-    """
+    # This uses real browser interactions and asserts on visible content.
+
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
 
-        # --------------------
+        
         # 1. Visit home page
-        # --------------------
+        
         page.goto(BASE_URL)
         # allow redirect + rendering
         time.sleep(0.5)
         assert "Book Catalog" in page.content() or "📖 Book Catalog" in page.content()
 
-        # --------------------
+        
         # 2. Add a new book
-        # --------------------
+        
         page.goto(f"{BASE_URL}/add_book")
 
         # Use a unique ISBN to avoid duplicate-ISBN errors
@@ -64,9 +63,9 @@ def test_add_borrow_and_return_flow():
         page.goto(f"{BASE_URL}/catalog")
         time.sleep(0.5)
 
-        # --------------------
+        
         # 3. Verify book in catalog
-        # --------------------
+        
         # Find the table row that contains our title
         row = page.locator("tbody tr", has_text=title).first
         assert row is not None
@@ -80,13 +79,9 @@ def test_add_borrow_and_return_flow():
         book_id_text = row.locator("td").nth(0).inner_text().strip()
         book_id = int(book_id_text)
 
-        # --------------------
+        
         # 4. Borrow the book (Flow 1)
-        # --------------------
-        # Inline form in catalog.html:
-        #   <input type="hidden" name="book_id" value="{{ book.id }}">
-        #   <input type="text" name="patron_id" ...>
-        #   <button type="submit" class="btn btn-success">Borrow</button>
+        
         row.locator("input[name='patron_id']").fill("123456")
         row.locator("text=Borrow").click()
 
@@ -98,9 +93,8 @@ def test_add_borrow_and_return_flow():
         flash_text = flash.inner_text().lower()
         assert "borrow" in flash_text  # should mention borrowed / not available etc.
 
-        # --------------------
+        
         # 5. Return the book (Flow 2)
-        # --------------------
         page.goto(f"{BASE_URL}/return")
 
         page.fill("#patron_id", "123456")
